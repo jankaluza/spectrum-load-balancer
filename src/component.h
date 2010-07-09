@@ -56,6 +56,14 @@ using namespace gloox;
 
 extern LogClass Log_;
 
+struct SpectrumInstance {
+	void *foobar;
+};
+
+struct User {
+	SpectrumInstance *instance;
+};
+
 class BalancerComponent : ConnectionListener, LogHandler {
 public:
 	BalancerComponent(const std::string &config);

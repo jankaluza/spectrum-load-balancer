@@ -115,6 +115,49 @@ static gboolean transportDataReceived(GIOChannel *source, GIOCondition condition
 	return TRUE;
 }
 
+
+
+
+
+namespace gloox {
+	class SpectrumComponent : public Component {
+		public:
+			SpectrumComponent(const std::string & ns, const std::string & server, const std::string & component, const std::string & password, int port = 5347) : Component(ns, server, component, password, port) {
+				m_users = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, g_free);
+			};
+			virtual ~SpectrumComponent() {
+				g_hash_table_destroy(m_users);
+			};
+			
+			void handleTag(Tag *tag) {
+				std::string from(JID(tag->findAttribute("from")).bare());
+				if (!from.empty() && !tag->findAttribute("to").empty()) {
+					User *user = (User *) g_hash_table_lookup(m_users, from.c_str());
+					if (user) {
+						
+					}
+					else {
+						Log("SpectrumComponent", "Adding new user " << from << "\n");
+						user = (User *) g_malloc(sizeof(User));
+						user->instance = NULL;
+						g_hash_table_replace(m_users, g_strdup(from.c_str()), user);
+					}
+				}
+				else {
+					Component::handleTag(tag);
+				}
+			}
+		
+		private:
+			GHashTable *m_users;
+		
+	};
+}
+
+
+
+
+
 BalancerComponent::BalancerComponent(const std::string &config) {
 	m_pInstance = this;
 	m_reconnectCount = 0;
@@ -129,7 +172,7 @@ BalancerComponent::BalancerComponent(const std::string &config) {
 
 	g_thread_init(NULL);
 
-	j = new Component("jabber:component:accept", m_configuration.server, m_configuration.jid, m_configuration.password, m_configuration.port);
+	j = new SpectrumComponent("jabber:component:accept", m_configuration.server, m_configuration.jid, m_configuration.password, m_configuration.port);
 
 	m_loop = g_main_loop_new(NULL, FALSE);
 
